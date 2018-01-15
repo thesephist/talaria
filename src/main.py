@@ -1,65 +1,48 @@
 import os, sys
 
-from yoctopuce.yocto_api import *
-from yoctopuce.yocto_tilt import *
-from yoctopuce.yocto_gyro import *
-from yoctopuce.yocto_accelerometer import *
+from yoctopuce.yocto_api import YRefParam, YAPI
+from yoctopuce.yocto_tilt import YTilt
+from yoctopuce.yocto_gyro import YGyro
+from yoctopuce.yocto_accelerometer import YAccelerometer
 
-def usage():
-    scriptname = os.path.basename(sys.argv[0])
-    print("Usage:")
-    print(scriptname + ' <serial_number>')
-    print(scriptname + ' <logical_name>')
-    print(scriptname + ' any  ')
-    sys.exit()
+def get_sensor_serial(serial_number = None):
+    """
+    Attempts to connected to a given sensor
+    or any sensor if no serial number is given,
+    and return the connected sensor's serial number.
+    """
+    if (serial_number is not None):
+        return serial_number
+    else:
+        sensor = YTilt.FirstTilt()
+        if sensor is None:
+            sys.exit('No sensors were detected over USB')
 
+        module = sensor.get_module()
+        serial_number = module.get_serialNumber()
 
-def die(msg):
-    sys.exit(msg + ' (check USB cable)')
+    return serial_number
 
+def get_tilt1(serial):
+    return YTilt.FindTilt(serial + '.tilt1')
 
-errmsg = YRefParam()
+def get_tilt2(serial):
+    return YTilt.FindTilt(serial + '.tilt2')
 
-if len(sys.argv) < 2:
-    usage()
+def get_accel(serial):
+    return YAccelerometer.FindAccelerometer(serial + '.accelerometer')
 
-target = sys.argv[1]
+def get_gyro(serial):
+    return YGyro.FindGyro(serial + '.gyro')
 
-# Setup the API to use local USB devices
-if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
-    sys.exit("init error" + errmsg.value)
+def is_online(device):
+    return device.isOnline()
 
-if target == 'any':
-    anytilt = YTilt.FirstTilt()
-    if anytilt is None:
-        die('No module connected (check USB cable)')
-    m = anytilt.get_module()
-    target = m.get_serialNumber()
-else:
-    anytilt = YTilt.FindTilt(target + ".tilt1")
-    if not (anytilt.isOnline()):
-        die('Module not connected (check identification and USB cable)')
+# Setup
+if YAPI.RegisterHub('usb', YRefParam()) != YAPI.SUCCESS:
+    sys.exit('Connection error: connection through USB failed')
 
-serial = anytilt.get_module().get_serialNumber()
-tilt1 = YTilt.FindTilt(serial + ".tilt1")
-tilt2 = YTilt.FindTilt(serial + ".tilt2")
-accelerometer = YAccelerometer.FindAccelerometer(serial + ".accelerometer")
-gyro = YGyro.FindGyro(serial + ".gyro")
-
-count = 0
-
-if not (tilt1.isOnline()):
-    die("Module not connected (check identification and USB cable)")
-
-while tilt1.isOnline():
-
-    if count % 10 == 0:
-        print("tilt1   tilt2   acc     gyro")
-
-    print("%-7.1f " % tilt1.get_currentValue() + \
-          "%-7.1f " % tilt2.get_currentValue() + \
-          "%-7.1f " % accelerometer.get_currentValue() + \
-          "%-7.1f" % gyro.get_currentValue())
-    count += 1
-    YAPI.Sleep(250, errmsg)
-YAPI.FreeAPI()
+serial = get_sensor_serial()
+while is_online(get_tilt1(serial)):
+    YAPI.Sleep(300, YRefParam())
+    print(get_tilt1(serial).get_currentValue())
