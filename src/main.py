@@ -1,5 +1,5 @@
 from sensors import Sensor
-from handlers import Handler
+from handlers import PrintOctothorpeHandler
 
 from yoctopuce.yocto_api import YRefParam, YAPI
 
@@ -9,7 +9,7 @@ if YAPI.RegisterHub('usb', YRefParam()) != YAPI.SUCCESS:
 
 # Application logic 
 sensor = Sensor()  # find the first (and only, for now) sensor available in the system
-handler = Handler('First handler')
+handler = PrintOctothorpeHandler('First handler')
 handler.listenTo(sensor)
 
 # Call last, as this blocks

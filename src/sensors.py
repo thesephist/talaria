@@ -15,7 +15,7 @@ class Sensor:
     module = None
     handlers = []
     is_watching = False
-    pollInterval = 500  # milliseconds
+    pollInterval = 150
 
     def __init__(self, serial_number=None):
         """
