@@ -43,3 +43,31 @@ class PrintOctothorpeHandler(Handler):
 
         print(' ' * leftOffset + '#' * length)
 
+
+class LuxControlHandler(Handler):
+    """
+    Turns a light on and off using a custom "lux" interface from my shell
+    """
+
+    description = "Lux lightbulb handler"
+
+    lastPitch = 0
+
+    def _turnLightOn(self):
+        from subprocess import Popen
+        print('Turning light on!')
+        p = Popen(['lux', 'on'])
+
+    def _turnLightOff(self):
+        from subprocess import Popen
+        print('Turning light off!')
+        p = Popen(['lux', 'off'])
+
+    def handleMeasurements(self, pitch=None, roll=None, accel=None, gyro=None):
+        if roll < 12 and roll > -12:
+            if pitch - self.lastPitch > 50:
+                self._turnLightOn()
+            elif self.lastPitch - pitch > 50:
+                self._turnLightOff()
+
+        self.lastPitch = pitch
