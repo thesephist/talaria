@@ -1,3 +1,5 @@
+import sys
+
 from sensors import Sensor
 from handlers import PrintOctothorpeHandler
 
