@@ -4,10 +4,10 @@ class App(object):
     consuming Tal environment APIs.
     """
 
-    name = None
+    name = 'App'
 
-    def __init__(self, name='App'):
-        self.name = name
+    def __init__(self, environment):
+        self.environment = environment
 
     def afterStart():
         return

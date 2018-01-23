@@ -27,6 +27,7 @@ class Environment(object):
     ENABLED_SERVICES = [
         NetworkService,
     ]
+    activeHandlers = []
     activeSession = None
     runningServices = []
 
@@ -56,6 +57,20 @@ class Environment(object):
         # start update loop
         def loop():
             threading.Timer(1, loop).start()
+
+            # update handlers once
+            pitch = self.get_pitch()
+            roll = self.get_roll()
+            accel = self.get_accel()
+            gyro = self.get_gyro()
+            for h in self.activeHandlers:
+                h.handleMeasurements(
+                    pitch=pitch,
+                    roll=roll,
+                    accel=accel,
+                    gyro=gyro
+                )
+
             self.display.updateStatus()
             self.display.updateMessage(self.message)
         
@@ -71,7 +86,7 @@ class Environment(object):
 
     def startApp(self, app):
         if app in self.ENABLED_APPS:
-            self.activeSession = app()
+            self.activeSession = app(environment=self)
         else:
             return False
 
@@ -90,3 +105,9 @@ class Environment(object):
 
     def afterCloseApp(self, app):
         return
+
+    def registerHandler(self, handlerInstance):
+        self.activeHandlers.append(handlerInstance)
+
+    def unregisterHandler(self, handlerInstance):
+        self.activeHandlers.remove(handlerInstance)
