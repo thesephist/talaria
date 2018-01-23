@@ -26,5 +26,3 @@ sensor.startWatching()
 
 # Display Logic
 display = Display() # find the first (and only, for now) display available in the system
-
-YAPI.Sleep(10, YRefParam())
