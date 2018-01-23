@@ -20,10 +20,9 @@ class Sensor:
     def __init__(self, serial_number=None):
         """
         Attempts to connected to a given sensor
-        or any sensor if no serial number is given,
-        and return the connected sensor's serial number.
+        or any sensor if no serial number is given
         """
-        if (serial_number is not None):
+        if serial_number is not None:
             self.module = YTilt.FindTilt(serial_number + '.tilt1').get_module()
         else:
             # Assume all sensors we're connected to here have a tilt sensor
