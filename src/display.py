@@ -1,5 +1,3 @@
-# Talaria's custom wrapper around Yoctopuce's (admittedly pretty nice) display API, especially for Tal's Environment Visual UI elements
-
 import os
 import sys
 

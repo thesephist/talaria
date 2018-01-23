@@ -1,5 +1,3 @@
-# Utility math / geometry functions
-
 def scale(value, min_val, max_val):
     """
     Scale a value, given min-max range, to the

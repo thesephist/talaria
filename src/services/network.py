@@ -1,5 +1,3 @@
-# Networking service implementing an async API for polling for connections and eventually fetching and sending data
-
 from service import Service
 
 class NetworkService(Service):

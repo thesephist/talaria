@@ -1,5 +1,3 @@
-# Base Tal service class
-
 class Service(object):
     """
     A service is any long-running task, analogous to a

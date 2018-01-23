@@ -1,5 +1,3 @@
-# Handlers for when measurements change by a certain amount
-
 from sensors import Sensor
 from utils import flatscale
 

@@ -1,5 +1,3 @@
-# Talaria's custom wrappers around Yoctopuce's (admittedly pretty nice) sensors API
-
 import os
 import sys
 
@@ -10,6 +8,11 @@ from yoctopuce.yocto_accelerometer import YAccelerometer
 
 
 class Sensor(object):
+
+    """
+    Talaria's custom wrappers around Yoctopuce's
+    (admittedly pretty nice) sensors API
+    """
 
     serial_number = None
     module = None
