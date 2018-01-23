@@ -142,6 +142,12 @@ class Layer(object):
 class StatusLayer(Layer):
 
     """
+    The first layer of any display is the status layer,
+    used to indicate Talaria system status.
+
+    This is updated at regular time intervals and completely
+    independently of all other processes, on a separate
+    display layer.
     """
 
     power = True
@@ -170,6 +176,12 @@ class StatusLayer(Layer):
 class MessageLayer(Layer):
 
     """
+    The second layer of any display is the message layer,
+    used to deliver console / debugging and any other
+    useful messages to the user alongside application display.
+
+    This is updated independently of other processes, on a
+    separate display layer.
     """
 
     message = 'Idle'
