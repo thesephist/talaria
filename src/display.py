@@ -1,7 +1,5 @@
 import os
 import sys
-
-# temp
 import datetime
 
 from yoctopuce.yocto_api import YAPI, YRefParam
@@ -207,5 +205,7 @@ class MessageLayer(Layer):
     def updateMessage(self, message):
         self.clear()
         self.message = message
-        self.drawText(self.message, 'TOP', 'RIGHT')
-
+        dateStr = datetime.datetime.now().isoformat()
+        self.drawText(dateStr[0:10], 'TOP', 'RIGHT')
+        self.drawText(dateStr[11:16], 'CENTER', 'RIGHT')
+        self.drawText(self.message, 'BOTTOM', 'RIGHT')
