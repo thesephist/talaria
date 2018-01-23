@@ -56,13 +56,13 @@ class Environment(object):
 
         # start update loop
         def loop():
-            threading.Timer(1, loop).start()
+            threading.Timer(.5, loop).start()
 
             # update handlers once
-            pitch = self.get_pitch()
-            roll = self.get_roll()
-            accel = self.get_accel()
-            gyro = self.get_gyro()
+            pitch = self.tiltSensorRight.get_pitch()
+            roll = self.tiltSensorRight.get_roll()
+            accel = self.tiltSensorRight.get_accel()
+            gyro = self.tiltSensorRight.get_gyro()
             for h in self.activeHandlers:
                 h.handleMeasurements(
                     pitch=pitch,
@@ -72,7 +72,10 @@ class Environment(object):
                 )
 
             self.display.updateStatus()
-            self.display.updateMessage(self.message)
+            # self.display.updateMessage(self.message)
+
+            # for debugging, show data in the message row for now
+            self.display.updateMessage('P:{} R:{} G:{}'.format(str(pitch), str(roll), str(gyro)))
         
         loop()
 
