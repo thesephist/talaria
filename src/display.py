@@ -19,6 +19,9 @@ class Display(object):
     display = None
     layer_count = 0
 
+    statusLayer = None
+    messageLayer = None
+
     width = 0
     height = 0
     layers = []
@@ -35,7 +38,8 @@ class Display(object):
         else:
             self.display = YDisplay.FirstDisplay()
             if self.display is None:
-                sys.exit('No displays were detected over USB')
+                print('No displays were detected over USB. Ignoring...')
+                return
 
         self.module = self.display.get_module()
         self.serial_number = self.module.get_serialNumber()
@@ -53,9 +57,11 @@ class Display(object):
 
     def get_layer(self, idx=0):
         if idx == 0:
-            return StatusLayer(self.display.get_displayLayer(idx))
+            self.statusLayer = StatusLayer(self.display.get_displayLayer(idx))
+            return self.statusLayer
         elif idx == 1:
-            return MessageLayer(self.display.get_displayLayer(idx))
+            self.messageLayer = MessageLayer(self.display.get_displayLayer(idx))
+            return self.messageLayer
         else:
             return Layer(self.display.get_displayLayer(idx))
 
@@ -63,6 +69,16 @@ class Display(object):
         for layer in self.layers:
             layer.clear()
 
+    def updateStatus(self, power=True, busy=False, listening=False, network_connected=False):
+        self.statusLayer.power = power
+        self.statusLayer.busy = busy 
+        self.statusLayer.listening = listening 
+        self.statusLayer.network_connected = network_connected
+
+        self.statusLayer.refresh()
+
+    def updateMessage(self, message):
+        self.messageLayer.updateMessage(message)
 
 class Layer(object):
 
@@ -186,9 +202,9 @@ class MessageLayer(Layer):
 
     def __init__(self, display_layer):
         super(MessageLayer, self).__init__(display_layer)
-        self.update(self.message)
+        self.updateMessage(self.message)
 
-    def update(self, message):
+    def updateMessage(self, message):
         self.clear()
         self.message = message
         self.drawText(self.message, 'TOP', 'RIGHT')

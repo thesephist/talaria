@@ -8,3 +8,9 @@ class App(object):
 
     def __init__(self, name='App'):
         self.name = name
+
+    def afterStart():
+        return
+
+    def beforeClose():
+        return

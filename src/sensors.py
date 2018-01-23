@@ -31,7 +31,8 @@ class Sensor(object):
             # Assume all sensors we're connected to here have a tilt sensor
             sensor = YTilt.FirstTilt()
             if sensor is None:
-                sys.exit('No sensors were detected over USB')
+                print('No sensors were detected over USB. Ignoring...')
+                return
             self.module = sensor.get_module()
 
         self.serial_number = self.module.get_serialNumber()
