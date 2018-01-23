@@ -10,7 +10,7 @@ from yoctopuce.yocto_api import YAPI, YRefParam
 from yoctopuce.yocto_display import YDisplay, YDisplayLayer
 
 
-class Display:
+class Display(object):
 
     """
     Represents a generic Yoctopuce display unit,

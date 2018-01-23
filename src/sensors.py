@@ -9,7 +9,7 @@ from yoctopuce.yocto_gyro import YGyro
 from yoctopuce.yocto_accelerometer import YAccelerometer
 
 
-class Sensor:
+class Sensor(object):
 
     serial_number = None
     module = None

@@ -4,7 +4,7 @@ from sensors import Sensor
 from utils import flatscale
 
 
-class Handler:
+class Handler(object):
     """
     A Handler represents a listener that responds on every
     measurement event of the sensor.
