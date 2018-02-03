@@ -11,6 +11,11 @@ from apps.tracer import TracerApp
 
 from services.network import NetworkService
 
+from handlers import (
+    PrintOctothorpeHandler,
+    LuxControlHandler,
+    MacOSMouseControlHandler,
+)
 
 class Environment(object):
     """
@@ -27,7 +32,9 @@ class Environment(object):
     ENABLED_SERVICES = [
         NetworkService,
     ]
-    activeHandlers = []
+    activeHandlers = [
+        LuxControlHandler,
+    ]
     activeSession = None
     runningServices = []
 
@@ -48,34 +55,22 @@ class Environment(object):
         if YAPI.RegisterHub('usb', YRefParam()) != YAPI.SUCCESS:
             sys.exit('Connection error: connection through USB failed')
 
-        # start sensors
         self.tiltSensorRight = Sensor()
-
-        # start display
         self.display = Display()
 
-        # start update loop
-        def loop():
-            threading.Timer(.5, loop).start()
+        # bootstrap handlers
+        for h in self.activeHandlers:
+            self.tiltSensorRight.attachHandler(h())
+        self.tiltSensorRight.startWatching()
 
-            # update handlers once
-            pitch = self.tiltSensorRight.get_pitch()
-            roll = self.tiltSensorRight.get_roll()
-            accel = self.tiltSensorRight.get_accel()
-            gyro = self.tiltSensorRight.get_gyro()
-            for h in self.activeHandlers:
-                h.handleMeasurements(
-                    pitch=pitch,
-                    roll=roll,
-                    accel=accel,
-                    gyro=gyro
-                )
+        # start display update loop
+        def loop():
+            threading.Timer(.10, loop).start()
 
             self.display.updateStatus()
-            # self.display.updateMessage(self.message)
 
             # for debugging, show data in the message row for now
-            self.display.updateMessage('P:{} R:{} G:{}'.format(str(pitch), str(roll), str(gyro)))
+            self.display.updateMessage('P:{} R:{}'.format(str(pitch), str(roll)))
         
         loop()
 
@@ -114,3 +109,35 @@ class Environment(object):
 
     def unregisterHandler(self, handlerInstance):
         self.activeHandlers.remove(handlerInstance)
+
+class GestureOnlyEnvironment(Environment):
+    """
+    A subclass of Environment that does not interface with the display,
+    but rather takes advantage of the basic handlers defined for the
+    gesture-control interface.
+    """
+
+    activeHandlers = [
+        # PrintOctothorpeHandler,
+        LuxControlHandler,
+        # MacOSMouseControlHandler,
+    ]
+
+    def startUp(self):
+        if YAPI.RegisterHub('usb', YRefParam()) != YAPI.SUCCESS:
+            sys.exit('Connection error: connection through USB failed')
+
+        self.tiltSensorRight = Sensor()
+
+        # bootstrap handlers
+        for h in self.activeHandlers:
+            self.tiltSensorRight.attachHandler(h())
+        self.tiltSensorRight.startWatching()
+
+        # start display update loop
+        def loop():
+            threading.Timer(.10, loop).start()
+
+            # no-op here
+
+        loop()

@@ -18,7 +18,17 @@ class Sensor(object):
     module = None
     handlers = []
     is_watching = False
-    pollInterval = 150
+    pollInterval = 50
+
+    rollSensor = None
+    pitchSensor = None
+    accelSensor = None
+    gyroSensor = None
+
+    previousRoll = 0
+    previousPitch = 0
+    previousAccel = 0
+    previousGyro = 0
 
     def __init__(self, serial_number=None):
         """
@@ -37,37 +47,55 @@ class Sensor(object):
 
         self.serial_number = self.module.get_serialNumber()
 
+        # Initialize all onboard sensors
+        self.rollSensor = YTilt.FindTilt(self.serial_number + '.tilt1')
+        self.pitchSensor = YTilt.FindTilt(self.serial_number + '.tilt2')
+        self.accelSensor = YAccelerometer.FindAccelerometer(self.serial_number + '.accelerometer')
+        self.gyroSensor = YGyro.FindGyro(self.serial_number + '.gyro')
+
+        # Register advertised value change callbacks
+        self.rollSensor.registerValueCallback(self.rollChangedCallback)
+        self.pitchSensor.registerValueCallback(self.pitchChangedCallback)
+        self.accelSensor.registerValueCallback(self.accelChangedCallback)
+        self.gyroSensor.registerValueCallback(self.gyroChangedCallback)
+
     def get_roll(self):
-        return YTilt.FindTilt(self.serial_number + '.tilt1').get_currentValue()
+        return self.rollSensor.get_currentValue()
 
     def get_pitch(self):
-        return YTilt.FindTilt(self.serial_number + '.tilt2').get_currentValue()
+        return self.pitchSensor.get_currentValue()
 
     def get_accel(self):
-        return YAccelerometer.FindAccelerometer(self.serial_number + '.accelerometer').get_currentValue()
+        return self.accelSensor.get_currentValue()
 
     def get_gyro(self):
-        return YGyro.FindGyro(self.serial_number + '.gyro').get_currentValue()
+        return self.gyroSensor.get_currentValue()
 
     def is_online(self):
         return self.module.isOnline()
+
+    def rollChangedCallback(self, id, value):
+        self.previousRoll = float(value)
+
+    def pitchChangedCallback(self, id, value):
+        self.previousPitch = float(value)
+
+    def accelChangedCallback(self, id, value):
+        self.previousAccel = float(value)
+
+    def gyroChangedCallback(self, id, value):
+        self.previousGyro = float(value)
 
     def startWatching(self):
         self.is_watching = True
 
         while self.is_watching and self.is_online():
-
-            pitch = self.get_pitch()
-            roll = self.get_roll()
-            accel = self.get_accel()
-            gyro = self.get_gyro()
-
             for handler in self.handlers:
                 handler.handleMeasurements(
-                    pitch=pitch,
-                    roll=roll,
-                    accel=accel,
-                    gyro=gyro
+                    pitch=self.previousPitch,
+                    roll=self.previousRoll,
+                    accel=self.previousAccel,
+                    gyro=self.previousGyro
                 )
             YAPI.Sleep(self.pollInterval)
 

@@ -1,6 +1,18 @@
+import platform
+import sys
+
+from datetime import datetime, timedelta
+
 from sensors import Sensor
 from utils import flatscale
 
+if platform.system() == 'Darwin': # macOS
+    from Quartz.CoreGraphics import (
+        CGEventCreateMouseEvent, CGEventPost,
+        kCGEventMouseMoved, kCGEventLeftMouseDown,
+        kCGEventLeftMouseUp, kCGMouseButtonLeft,
+        kCGHIDEventTap,
+    )
 
 class Handler(object):
     """
@@ -49,23 +61,70 @@ class LuxControlHandler(Handler):
 
     description = "Lux lightbulb handler"
 
+    lastTime = datetime.now()
     lastPitch = 0
+    luxPowerOn = None
+
+    # degrees per second
+    THRESHOLD_PITCH_CHANGE_RATE = 75
 
     def _turnLightOn(self):
-        from subprocess import Popen
-        print('Turning light on!')
-        p = Popen(['lux', 'on'])
+        if self.luxPowerOn is not True:
+            from subprocess import Popen
+            print('Turning light on!')
+            p = Popen(['lux', 'on'])
+            self.luxPowerOn = True
 
     def _turnLightOff(self):
-        from subprocess import Popen
-        print('Turning light off!')
-        p = Popen(['lux', 'off'])
+        if self.luxPowerOn is not False:
+            from subprocess import Popen
+            print('Turning light off!')
+            p = Popen(['lux', 'off'])
+            self.luxPowerOn = False
 
     def handleMeasurements(self, pitch=None, roll=None, accel=None, gyro=None):
-        if roll < 12 and roll > -12:
-            if pitch - self.lastPitch > 50:
-                self._turnLightOn()
-            elif self.lastPitch - pitch > 50:
-                self._turnLightOff()
+        currentTime = datetime.now()
+        timeSpan = self.lastTime - currentTime # timeSpan (timedelta) is always positive
 
+        # degrees per second
+        pitchChangeRate = (pitch - self.lastPitch) / ((timeSpan.microseconds) * 0.000001)
+
+        if pitchChangeRate > self.THRESHOLD_PITCH_CHANGE_RATE:
+            self._turnLightOn()
+        elif pitchChangeRate < -(self.THRESHOLD_PITCH_CHANGE_RATE):
+            self._turnLightOff()
+
+        self.lastTime = currentTime
         self.lastPitch = pitch
+
+
+class MacOSMouseControlHandler(Handler):
+    """
+    Controls the mouse cursor on macOS environments
+    """
+
+    if platform.system() != 'Darwin':
+        print('MacOSMouseControlHandler is not available on the {} platform.'.format(platform.system()))
+        sys.exit(1)
+
+    HEIGHT = 1200
+    WIDTH = 1920
+
+    def _mouseEvent(self, type, x, y):
+        evt = CGEventCreateMouseEvent(
+            None,
+            type,
+            (x, y),
+            kCGMouseButtonLeft
+        )
+        CGEventPost(kCGHIDEventTap, evt)
+
+    def _mouseMove(self, x, y):
+        self._mouseEvent(kCGEventMouseMoved, x, y)
+
+    def handleMeasurements(self, pitch=None, roll=None, accel=None, gyro=None):
+        # normalized means out of [0, 1]
+        normalizedPitch = 1 - flatscale(pitch, -60, 45)
+        normalizedRoll = flatscale(roll, -10, 120)
+
+        self._mouseMove(self.WIDTH * normalizedRoll, self.HEIGHT * normalizedPitch)
