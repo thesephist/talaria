@@ -1,1 +1,2 @@
 yoctopuce==1.10.29543
+pyobjc==4.2.2

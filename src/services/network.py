@@ -1,4 +1,4 @@
-from service import Service
+from services.service import Service
 
 class NetworkService(Service):
     """
